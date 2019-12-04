@@ -45,8 +45,9 @@ X = subdf.drop(columns=['Year', 'Player', 'Tm', 'Pos', 'Age'])
 pca = PCA(0.99)
 X_new = pca.fit_transform(X)
 print(X_new.shape)
-# calculate pair-wise similarity - express as matrix?
+# calculate pair-wise similarity matrix
 sim_mat = cosine_similarity(X_new)
-# TODO: construct graph and run METIS?
+# TODO: construct graph and run METIS? networkx-METIS or networkit
+# TODO: how to visualize the graph (and communities)? networkD3?
 
 
