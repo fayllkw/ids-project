@@ -32,7 +32,7 @@ df = df.drop(columns=["blanl", "blank2"])
 
 """ Calculating similarity for a single year """
 # keep only 2016-2017 season
-year = 2017
+year = 1997
 subdf = df[df['Year'] == year].copy()
 # only keep TOT for players who are traded in the season
 subdf = drop_multi_teams(subdf)
@@ -45,14 +45,15 @@ subdf = subdf.fillna(0)
 subdf.to_csv("../data/processed/seasons_stats_{}.csv".format(year), index=False)
 # feature extraction (PCA and cosine similarity)
 X = subdf.drop(columns=['Year', 'Player', 'Tm', 'Pos', 'Age'])
-pca_pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(0.99))])
+pca_pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(0.9))])
 X_new = pca_pipeline.fit_transform(X)
 sim_mat = cosine_similarity(X_new)
 # redefine edge weight
 option = 'cutoff'  # or scale
+threshold = None
 if option == 'cutoff':
-    sim_mat[sim_mat < 0] = 0
-    sim_mat[sim_mat > 0] = 1
+    threshold = 0.88
+    sim_mat = (sim_mat > threshold).astype(float)
 elif option == 'scale':
     sim_mat = sim_mat + 1
 np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
@@ -62,6 +63,6 @@ edge_list = sim_df.stack().reset_index()
 edge_list.columns = ['src', 'dst', 'edge_weight']
 if option == 'cutoff':
     edge_list = edge_list[edge_list['edge_weight'] != 0]
-edge_list.to_csv("../data/similarity_graph/network_{}.graph".format(year),
-                 index=False)
+edge_list.to_csv("../data/similarity_graph/network_{}_{}.graph".format(year, threshold),
+                 index=False, header=None)
 
