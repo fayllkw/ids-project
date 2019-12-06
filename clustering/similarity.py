@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -32,7 +33,8 @@ df = df.drop(columns=["blanl", "blank2"])
 
 """ Calculating similarity for a single year """
 # keep only 2016-2017 season
-year = 1997
+year = 2007
+drop = True
 subdf = df[df['Year'] == year].copy()
 # only keep TOT for players who are traded in the season
 subdf = drop_multi_teams(subdf)
@@ -45,24 +47,42 @@ subdf = subdf.fillna(0)
 subdf.to_csv("../data/processed/seasons_stats_{}.csv".format(year), index=False)
 # feature extraction (PCA and cosine similarity)
 X = subdf.drop(columns=['Year', 'Player', 'Tm', 'Pos', 'Age'])
+if drop:
+    X = X.drop(columns=['PER', '3PAr', 'FTr',
+                        'ORB%', 'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%',
+                        'USG%', 'OWS', 'DWS', 'WS', 'WS/48',
+                        'OBPM', 'DBPM', 'BPM', 'VORP'
+                        ])
+
 pca_pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(0.9))])
 X_new = pca_pipeline.fit_transform(X)
+
 sim_mat = cosine_similarity(X_new)
 # redefine edge weight
 option = 'cutoff'  # or scale
-threshold = None
+threshold = 0.88
 if option == 'cutoff':
     threshold = 0.88
     sim_mat = (sim_mat > threshold).astype(float)
 elif option == 'scale':
     sim_mat = sim_mat + 1
 np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
+np.savetxt("../data/similarity_matrix/matrix_{}_{}_drop{}.txt".format(year, threshold, drop), sim_mat)
 # create and output edge list
 sim_df = pd.DataFrame(sim_mat)
 edge_list = sim_df.stack().reset_index()
 edge_list.columns = ['src', 'dst', 'edge_weight']
 if option == 'cutoff':
     edge_list = edge_list[edge_list['edge_weight'] != 0]
-edge_list.to_csv("../data/similarity_graph/network_{}_{}.graph".format(year, threshold),
+edge_list.to_csv("../data/similarity_graph/network_{}_{}_drop{}.graph".format(year, threshold, drop),
                  index=False, header=None)
 
+
+
+
+### plot heat map
+# corr = X.corr()
+# mask = np.zeros_like(corr, dtype=np.bool)
+# mask[np.triu_indices_from(mask)] = True
+# cmap = sns.diverging_palette(220, 10, as_cmap=True)
+# sns.heatmap(corr, mask=mask, cmap=cmap)
