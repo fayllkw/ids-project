@@ -32,50 +32,42 @@ df = df.drop(columns=["blanl", "blank2"])
 # major_player_after_1967 = df[(df['MP']>100) & (df['Year']>1967)]
 
 """ Calculating similarity for a single year """
-# keep only 2016-2017 season
-year = 2007
-drop = True
-subdf = df[df['Year'] == year].copy()
-# only keep TOT for players who are traded in the season
-subdf = drop_multi_teams(subdf)
-# keep only players playing more than 100 minutes
-subdf = subdf[subdf['MP'] > 100]
-# deal with NA in different cols - after 1985, for players playing more than
-# 100 minutes, only 3P% and FT% have NA due to 0 attempt
-subdf = subdf.fillna(0)
-# output processed stats of the year
-subdf.to_csv("../data/processed/seasons_stats_{}.csv".format(year), index=False)
-# feature extraction (PCA and cosine similarity)
-X = subdf.drop(columns=['Year', 'Player', 'Tm', 'Pos', 'Age'])
-if drop:
-    X = X.drop(columns=['PER', '3PAr', 'FTr',
-                        'ORB%', 'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%',
-                        'USG%', 'OWS', 'DWS', 'WS', 'WS/48',
-                        'OBPM', 'DBPM', 'BPM', 'VORP'
-                        ])
-
-pca_pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(0.9))])
-X_new = pca_pipeline.fit_transform(X)
-
-sim_mat = cosine_similarity(X_new)
-# redefine edge weight
-option = 'cutoff'  # or scale
-threshold = 0.88
-if option == 'cutoff':
-    threshold = 0.88
+def get_similarity(df, year, drop, threshold):
+    # keep only 2016-2017 season
+    year = 2007
+    drop = True
+    subdf = df[df['Year'] == year].copy()
+    # only keep TOT for players who are traded in the season
+    subdf = drop_multi_teams(subdf)
+    # keep only players playing more than 100 minutes
+    subdf = subdf[subdf['MP'] > 100]
+    # deal with NA in different cols - after 1985, for players playing more than
+    # 100 minutes, only 3P% and FT% have NA due to 0 attempt
+    subdf = subdf.fillna(0)
+    # output processed stats of the year
+    subdf.to_csv("../data/processed/seasons_stats_{}.csv".format(year), index=False)
+    # feature extraction (PCA and cosine similarity)
+    X = subdf.drop(columns=['Year', 'Player', 'Tm', 'Pos', 'Age'])
+    if drop:
+        X = X.drop(columns=['PER',
+                            'ORB%', 'DRB%', 'TRB%', 'AST%', 'STL%', 'BLK%', 'TOV%',
+                            'USG%', 'OWS', 'DWS', 'WS', 'WS/48',
+                            'OBPM', 'DBPM', 'BPM', 'VORP'
+                            ])
+    pca_pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(0.9))])
+    X_new = pca_pipeline.fit_transform(X)
+    sim_mat = cosine_similarity(X_new)
+    # redefine edge weight
     sim_mat = (sim_mat > threshold).astype(float)
-elif option == 'scale':
-    sim_mat = sim_mat + 1
-np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
-np.savetxt("../data/similarity_matrix/matrix_{}_{}_drop{}.txt".format(year, threshold, drop), sim_mat)
-# create and output edge list
-sim_df = pd.DataFrame(sim_mat)
-edge_list = sim_df.stack().reset_index()
-edge_list.columns = ['src', 'dst', 'edge_weight']
-if option == 'cutoff':
+    np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
+    np.savetxt("../data/similarity_matrix/matrix_{}_{}_drop{}.txt".format(year, threshold, drop), sim_mat)
+    # create and output edge list
+    sim_df = pd.DataFrame(sim_mat)
+    edge_list = sim_df.stack().reset_index()
+    edge_list.columns = ['src', 'dst', 'edge_weight']
     edge_list = edge_list[edge_list['edge_weight'] != 0]
-edge_list.to_csv("../data/similarity_graph/network_{}_{}_drop{}.graph".format(year, threshold, drop),
-                 index=False, header=None)
+    edge_list.to_csv("../data/similarity_graph/network_{}_{}_drop{}.graph".format(year, threshold, drop),
+                     index=False, header=None)
 
 
 
