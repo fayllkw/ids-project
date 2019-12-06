@@ -24,18 +24,16 @@ def drop_multi_teams(df_year):
 
 """ Scripts of data processing """
 # read
-df = pd.read_csv("../data/seasons_stats.csv", index_col=0)
+stats = pd.read_csv("../data/seasons_stats.csv", index_col=0)
 player = pd.read_csv("../data/player_data.csv")
 # Drop blank rows and columns
-df = df.dropna(axis=0, how="all")
-df = df.drop(columns=["blanl", "blank2"])
+stats = stats.dropna(axis=0, how="all")
+stats = stats.drop(columns=["blanl", "blank2"])
 # major_player_after_1967 = df[(df['MP']>100) & (df['Year']>1967)]
 
 """ Calculating similarity for a single year """
-def get_similarity(df, year, drop, threshold):
+def get_similarity(df, year, threshold, drop):
     # keep only 2016-2017 season
-    year = 2007
-    drop = True
     subdf = df[df['Year'] == year].copy()
     # only keep TOT for players who are traded in the season
     subdf = drop_multi_teams(subdf)
@@ -59,17 +57,18 @@ def get_similarity(df, year, drop, threshold):
     sim_mat = cosine_similarity(X_new)
     # redefine edge weight
     sim_mat = (sim_mat > threshold).astype(float)
-    np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
-    np.savetxt("../data/similarity_matrix/matrix_{}_{}_drop{}.txt".format(year, threshold, drop), sim_mat)
+    # np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
+    np.savetxt("../data/similarity_matrix/matrix_{}_{:.2f}_drop{}.txt".format(year, threshold, drop), sim_mat)
     # create and output edge list
     sim_df = pd.DataFrame(sim_mat)
     edge_list = sim_df.stack().reset_index()
     edge_list.columns = ['src', 'dst', 'edge_weight']
     edge_list = edge_list[edge_list['edge_weight'] != 0]
-    edge_list.to_csv("../data/similarity_graph/network_{}_{}_drop{}.graph".format(year, threshold, drop),
+    edge_list.to_csv("../data/similarity_graph/network_{}_{:.2f}_drop{}.graph".format(year, threshold, drop),
                      index=False, header=None)
 
-
+for year in range(1987, 2018):
+    get_similarity(stats, year, threshold=0.9, drop=True)
 
 
 ### plot heat map
