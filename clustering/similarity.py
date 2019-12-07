@@ -24,8 +24,8 @@ def drop_multi_teams(df_year):
 
 """ Scripts of data processing """
 # read
-stats = pd.read_csv("../data/seasons_stats.csv", index_col=0)
-player = pd.read_csv("../data/player_data.csv")
+stats = pd.read_csv("../data/raw/seasons_stats.csv", index_col=0)
+# player = pd.read_csv("../data/raw/player_data.csv")
 # Drop blank rows and columns
 stats = stats.dropna(axis=0, how="all")
 stats = stats.drop(columns=["blanl", "blank2"])

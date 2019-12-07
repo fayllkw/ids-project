@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-clusters = pd.read_csv("../data/community_counts_0.90_dropFalse.csv")
+clusters = pd.read_csv("../data/community_counts/community_counts_0.90_dropFalse.csv")
 
 fig, ax1 = plt.subplots()
 

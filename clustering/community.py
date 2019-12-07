@@ -58,7 +58,7 @@ over_years = pd.DataFrame(
     {'Year': range(1987, 2018), 'Communities': community_nums,
      'More_than_10': large_community_nums, 'Only_one':standalone_nums})
 over_years.to_csv(
-    "../data/community_counts_{:.2f}_drop{}.csv".format(threshold, drop),
+    "../data/community_counts/community_counts_{:.2f}_drop{}.csv".format(threshold, drop),
     index=False)
 
 plt.figure()
