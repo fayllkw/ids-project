@@ -70,10 +70,3 @@ def get_similarity(df, year, threshold, drop):
 for year in range(1987, 2018):
     get_similarity(stats, year, threshold=0.9, drop=True)
 
-
-### plot heat map
-# corr = X.corr()
-# mask = np.zeros_like(corr, dtype=np.bool)
-# mask[np.triu_indices_from(mask)] = True
-# cmap = sns.diverging_palette(220, 10, as_cmap=True)
-# sns.heatmap(corr, mask=mask, cmap=cmap)

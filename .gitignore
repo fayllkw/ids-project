@@ -38,5 +38,10 @@ __pycache__
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# RStudio
+.Rhistory
+
 # Project Specefic
 plans/
+
+
