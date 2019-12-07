@@ -43,5 +43,7 @@ __pycache__
 
 # Project Specefic
 plans/
+data/*
+!data/raw/
 
 

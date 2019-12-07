@@ -58,7 +58,7 @@ def get_similarity(df, year, threshold, drop):
     # redefine edge weight
     sim_mat = (sim_mat > threshold).astype(float)
     # np.fill_diagonal(sim_mat, np.nan)  # set diagonal as nan
-    np.savetxt("../data/similarity_matrix/matrix_{}_{:.2f}_drop{}.txt".format(year, threshold, drop), sim_mat)
+    # np.savetxt("../data/similarity_matrix/matrix_{}_{:.2f}_drop{}.txt".format(year, threshold, drop), sim_mat)
     # create and output edge list
     sim_df = pd.DataFrame(sim_mat)
     edge_list = sim_df.stack().reset_index()
